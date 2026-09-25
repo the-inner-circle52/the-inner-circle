@@ -10,75 +10,94 @@
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;  .logo {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
-    display: block;
-    margin: 0 auto 20px;
-}                                                                            
+            box-sizing: border-box;
         }
 
-        body  { <img src="logo.png" alt="The Inner Circle Logo" >
+        body {
             min-height: 100vh;
             background: #080808;
-            color: white;
+            color: #f5e6c8;
             font-family: Arial, sans-serif;
+
             display: flex;
             justify-content: center;
             align-items: center;
+
             text-align: center;
         }
 
         .container {
-            max-width: 750px;
-            padding: 40px 25px;
+            width: 90%;
+            max-width: 900px;
+            padding: 40px 20px;
         }
 
-        .small {
-            color: #888;
-            letter-spacing: 4px;
-            font-size: 12px;
-            text-transform: uppercase;
-            margin-bottom: 25px;
+        .logo {
+            width: 220px;
+            height: 220px;
+            object-fit: contain;
+            display: block;
+            margin: 0 auto 30px;
         }
 
         h1 {
-            font-size: clamp(45px, 9vw, 90px);
-            letter-spacing: -3px;
-            margin-bottom: 20px;
+            font-family: Georgia, serif;
+            font-size: 48px;
+            letter-spacing: 10px;
+            font-weight: 400;
+            margin-bottom: 15px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            letter-spacing: 6px;
+            color: #c9a86a;
+            margin-bottom: 35px;
         }
 
         .line {
-            width: 60px;
-            height: 2px;
-            background: white;
+            width: 120px;
+            height: 1px;
+            background: #c9a86a;
             margin: 25px auto;
         }
 
-        .tagline {
-            font-size: 20px;
-            line-height: 1.6;
-            color: #ccc;
-        }
-
-        .mystery {
-            margin-top: 45px;
-            color: #777;
+        .description {
+            max-width: 600px;
+            margin: 0 auto;
+            color: #bdbdbd;
+            font-size: 16px;
             line-height: 1.8;
         }
 
         .coming {
-            margin-top: 45px;
+            margin-top: 40px;
             font-size: 13px;
-            letter-spacing: 5px;
+            letter-spacing: 4px;
+            color: #c9a86a;
             text-transform: uppercase;
         }
 
-        footer {
-            margin-top: 70px;
-            font-size: 12px;
-            color: #555;
+        @media (max-width: 600px) {
+
+            .logo {
+                width: 170px;
+                height: 170px;
+            }
+
+            h1 {
+                font-size: 30px;
+                letter-spacing: 6px;
+            }
+
+            .subtitle {
+                font-size: 13px;
+                letter-spacing: 4px;
+            }
+
+            .description {
+                font-size: 14px;
+            }
         }
     </style>
 </head>
@@ -87,30 +106,27 @@
 
     <div class="container">
 
-        <div class="small">Something is coming</div>
+        <!-- LOGO -->
+        <img src="logo.png" alt="The Inner Circle Logo" class="logo">
 
-        <h1>THE<br>INNER CIRCLE</h1>
+        <!-- TITLE -->
+        <h1>THE INNER CIRCLE</h1>
+
+        <div class="subtitle">
+            GECA
+        </div>
 
         <div class="line"></div>
 
-        <p class="tagline">
-            A space for people who think differently,
-            build together, and want to be part of something bigger.
-        </p>
-
-        <p class="mystery">
-            Not a club.<br>
-            Not just a community.<br>
-            Something different.
+        <!-- DESCRIPTION -->
+        <p class="description">
+            A community built for connections, collaboration,
+            ideas and opportunities.
         </p>
 
         <div class="coming">
-            Coming Soon
+            Something is coming.
         </div>
-
-        <footer>
-            © 2026 The Inner Circle
-        </footer>
 
     </div>
 
