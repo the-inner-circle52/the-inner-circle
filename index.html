@@ -1,134 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>The Inner Circle</title>
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            min-height: 100vh;
-            background: #080808;
-            color: #f5e6c8;
-            font-family: Arial, sans-serif;
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            text-align: center;
-        }
-
-        .container {
-            width: 90%;
-            max-width: 900px;
-            padding: 40px 20px;
-        }
-
-        .logo {
-            width: 220px;
-            height: 220px;
-            object-fit: contain;
-            display: block;
-            margin: 0 auto 30px;
-        }
-
-        h1 {
-            font-family: Georgia, serif;
-            font-size: 48px;
-            letter-spacing: 10px;
-            font-weight: 400;
-            margin-bottom: 15px;
-        }
-
-        .subtitle {
-            font-size: 16px;
-            letter-spacing: 6px;
-            color: #c9a86a;
-            margin-bottom: 35px;
-        }
-
-        .line {
-            width: 120px;
-            height: 1px;
-            background: #c9a86a;
-            margin: 25px auto;
-        }
-
-        .description {
-            max-width: 600px;
-            margin: 0 auto;
-            color: #bdbdbd;
-            font-size: 16px;
-            line-height: 1.8;
-        }
-
-        .coming {
-            margin-top: 40px;
-            font-size: 13px;
-            letter-spacing: 4px;
-            color: #c9a86a;
-            text-transform: uppercase;
-        }
-
-        @media (max-width: 600px) {
-
-            .logo {
-                width: 170px;
-                height: 170px;
-            }
-
-            h1 {
-                font-size: 30px;
-                letter-spacing: 6px;
-            }
-
-            .subtitle {
-                font-size: 13px;
-                letter-spacing: 4px;
-            }
-
-            .description {
-                font-size: 14px;
-            }
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4f1ea">
+<meta name="description" content="The Inner Circle | GECA — a selective community for builders, thinkers and doers.">
+<title>The Inner Circle | GECA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=DM+Mono:wght@300;400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
-
 <body>
-
-    <div class="container">
-
-        <!-- LOGO -->
-        <img src="logo.png" alt="The Inner Circle Logo" class="logo">
-
-        <!-- TITLE -->
-        <h1>THE INNER CIRCLE</h1>
-
-        <div class="subtitle">
-            GECA
-        </div>
-
-        <div class="line"></div>
-
-        <!-- DESCRIPTION -->
-        <p class="description">
-            A community built for connections, collaboration,
-            ideas and opportunities.
-        </p>
-
-        <div class="coming">
-            Something is coming.
-        </div>
-
-    </div>
-
+<div id="root"></div>
+<script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
