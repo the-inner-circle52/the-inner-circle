@@ -3,11 +3,27 @@ import { members } from '../data.js';
 import { useReveal } from '../hooks/useReveal.js';
 
 const SLIDES = [
-  { name: 'Aditya Sharma', role: 'FOUNDER', photo: '/assets/aditya-portrait-clean.jpg', initials: 'AS' },
-  ...members.map((m) => ({ name: m.name, role: m.role, initials: m.initials })),
+  {
+    name: 'Aditya Sharma',
+    role: 'FOUNDER',
+    eyebrow: 'FOUNDER REVEAL',
+    photo: '/assets/aditya-portrait-clean.jpg',
+    initials: 'AS',
+    quote: "“People build what's next.”",
+    sub: "That's the circle.",
+  },
+  ...members.map((m, i) => ({
+    name: m.name,
+    role: m.role,
+    eyebrow: `MEET THE CIRCLE · ${String(i + 1).padStart(2, '0')}`,
+    photo: m.photo,
+    initials: m.initials,
+    quote: m.bio,
+    sub: m.focus,
+  })),
 ];
 
-const INTERVAL = 3200;
+const INTERVAL = 7000;
 
 export default function Founder() {
   const [slide, setSlide] = useState(0);
@@ -17,6 +33,10 @@ export default function Founder() {
     const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), INTERVAL);
     return () => clearInterval(id);
   }, []);
+
+  const cur = SLIDES[slide];
+  const words = cur.name.toUpperCase().split(' ');
+  const longest = Math.max(...words.map((w) => w.length));
 
   return (
     <section className="founder section" id="people">
@@ -37,14 +57,17 @@ export default function Founder() {
       <div className="founder-top"><span>THE INNER CIRCLE</span><small>IDEAS · PEOPLE · PROJECTS · IMPACT</small></div>
 
       <div ref={copyRef} className={`founder-copy reveal${copyVisible ? ' visible' : ''}`}>
-        <span className="eyebrow">FOUNDER REVEAL</span>
-        <div className="short-rule" />
-        <h2>
-          <span className="line-mask"><span className="line-inner">ADITYA</span></span>
-          <span className="line-mask"><span className="line-inner">SHARMA</span></span>
-        </h2>
-        <p className="role">FOUNDER<br />THE INNER CIRCLE | GECA</p>
-        <div className="quote">“People build what's next.”<br /><span>That's the circle.</span></div>
+        <div key={slide} className="founder-swap" aria-live="polite">
+          <span className="eyebrow">{cur.eyebrow}</span>
+          <div className="short-rule" />
+          <h2 className={longest > 6 ? 'name-long' : ''}>
+            {words.map((w) => (
+              <span className="line-mask" key={w}><span className="line-inner">{w}</span></span>
+            ))}
+          </h2>
+          <p className="role">{cur.role}<br />THE INNER CIRCLE | GECA</p>
+          <div className="quote">{cur.quote}<br /><span>{cur.sub}</span></div>
+        </div>
       </div>
 
       <div className="founder-side">
@@ -52,7 +75,7 @@ export default function Founder() {
       </div>
       <div className="founder-bottom">
         <span>A SELECTIVE COMMUNITY FOR BUILDERS, THINKERS AND DOERS.</span>
-        <span>FOUNDER'S ROOM / SEAT I</span>
+        <span>{slide === 0 ? "FOUNDER'S ROOM / SEAT I" : `THE CIRCLE / SEAT ${String(slide + 1).padStart(2, '0')}`}</span>
       </div>
     </section>
   );

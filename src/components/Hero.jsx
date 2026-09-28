@@ -10,7 +10,26 @@ export default function Hero() {
       <div className="hero-star" aria-hidden="true">
         <div className="hero-star-sphere" />
         <div className="hero-star-core" />
-        <img className="hero-star-mark" src="/assets/inner-circle-logo.png" alt="" />
+        <svg className="hero-star-mark" viewBox="0 0 200 200" aria-hidden="true">
+          <defs>
+            <linearGradient id="lmMetal" gradientUnits="userSpaceOnUse" x1="30" y1="20" x2="175" y2="185">
+              <stop offset="0" stopColor="#ffffff" />
+              <stop offset=".32" stopColor="#b9b19b" />
+              <stop offset=".62" stopColor="#5d574a" />
+              <stop offset="1" stopColor="#d9d2bd" />
+            </linearGradient>
+            <mask id="lmA"><rect width="200" height="200" fill="#000" /><circle cx="100" cy="100" r="74" fill="#fff" /><circle cx="108" cy="100" r="72" fill="#000" /></mask>
+            <mask id="lmB"><rect width="200" height="200" fill="#000" /><circle cx="104" cy="102" r="62" fill="#fff" /><circle cx="112" cy="102" r="60" fill="#000" /></mask>
+            <mask id="lmC"><rect width="200" height="200" fill="#000" /><circle cx="108" cy="103" r="50" fill="#fff" /><circle cx="115" cy="103" r="49" fill="#000" /></mask>
+            <mask id="lmD"><rect width="200" height="200" fill="#000" /><circle cx="100" cy="100" r="74" fill="#fff" /><circle cx="86" cy="100" r="69" fill="#000" /></mask>
+          </defs>
+          <g className="hero-star-mark-spin">
+            <rect width="200" height="200" fill="url(#lmMetal)" mask="url(#lmA)" />
+            <rect width="200" height="200" fill="url(#lmMetal)" mask="url(#lmB)" />
+            <rect width="200" height="200" fill="url(#lmMetal)" mask="url(#lmC)" />
+            <rect width="200" height="200" fill="url(#lmMetal)" mask="url(#lmD)" />
+          </g>
+        </svg>
       </div>
 
       <div className="hero-copy">

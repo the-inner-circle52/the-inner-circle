@@ -65,17 +65,17 @@ export const principles = [
 ];
 
 export const members = [
-  { role: 'ARCHITECT', name: 'Harsh Soni', focus: 'Technology · Systems · Engineering', bio: 'Leads the technical backbone of the Circle — architecture, tooling and the systems nobody notices until they break.', initials: 'HS' },
-  { role: 'AUTEUR', name: 'Pulkit', focus: 'Creative · Motion · Storytelling', bio: 'Shapes how the Circle looks and feels — motion, design and the stories that travel outside these walls.', initials: 'PK' },
-  { role: 'MARSHAL', name: 'Gautam', focus: 'Operations · Coordination · Execution', bio: 'Keeps the Circle moving — schedules, logistics and the quiet coordination that makes ambitious things happen.', initials: 'G' },
-  { role: 'HERALD', name: 'Lakshya Barotia', focus: 'Communication · Outreach · PR', bio: "The Circle's voice to the outside world — outreach, messaging and making sure the right people hear about the right things.", initials: 'LB' },
-  { role: 'ALCHEMIST', name: 'Ansh Pingolia', focus: 'Automation · Data · Intelligence', bio: "Turns raw data and repetitive work into automated systems — the Circle's quiet force multiplier.", initials: 'AP' },
-  { role: 'ENVOY', name: 'Palak Kanwar Chouhan', focus: 'Representation · Speaking · Outreach', bio: "Represents the Circle in rooms it hasn't entered yet — speaking, outreach and the first impressions that matter.", initials: 'PC' },
-  { role: 'ORACLE', name: 'Sanvi Saraswat', focus: 'Research · Knowledge · Insight', bio: 'Goes deep before the Circle moves — research, precedent and the insight that keeps decisions honest.', initials: 'SS' },
-  { role: 'SEEKER', name: 'Swayam', focus: 'AI/ML · Development · Exploration', bio: "Explores the edges — AI, ML and the experimental work that might become tomorrow's pillar.", initials: 'SW' },
-  { role: 'STRATEGIST', name: 'Sumit Kakani', focus: 'Strategy · Planning · Growth', bio: 'Maps out where the Circle goes next — long-term strategy, growth plans and the questions that shape direction early.', initials: 'SK' },
-  { role: 'CURATOR', name: 'Himanshi Dikshit', focus: 'Design · Experience · Detail', bio: 'Shapes how every touchpoint of the Circle feels — from event design to the small details people always feel, rarely notice.', initials: 'HD' },
-  { role: 'CATALYST', name: 'Piyush Lalwani', focus: 'Partnerships · Growth · Network', bio: "Builds bridges the Circle doesn't have yet — partnerships, collaborations and the network effect behind the next project.", initials: 'PL' },
+  { role: 'ARCHITECT', name: 'Harsh Soni', photo: '/assets/members/harsh-soni.svg', focus: 'Technology · Systems · Engineering', bio: 'Leads the technical backbone of the Circle — architecture, tooling and the systems nobody notices until they break.', initials: 'HS' },
+  { role: 'AUTEUR', name: 'Pulkit', photo: '/assets/members/pulkit.svg', focus: 'Creative · Motion · Storytelling', bio: 'Shapes how the Circle looks and feels — motion, design and the stories that travel outside these walls.', initials: 'PK' },
+  { role: 'MARSHAL', name: 'Gautam', photo: '/assets/members/gautam.svg', focus: 'Operations · Coordination · Execution', bio: 'Keeps the Circle moving — schedules, logistics and the quiet coordination that makes ambitious things happen.', initials: 'G' },
+  { role: 'HERALD', name: 'Lakshya Barotia', photo: '/assets/members/lakshya-barotia.svg', focus: 'Communication · Outreach · PR', bio: "The Circle's voice to the outside world — outreach, messaging and making sure the right people hear about the right things.", initials: 'LB' },
+  { role: 'ALCHEMIST', name: 'Ansh Pingolia', photo: '/assets/members/ansh-pingolia.svg', focus: 'Automation · Data · Intelligence', bio: "Turns raw data and repetitive work into automated systems — the Circle's quiet force multiplier.", initials: 'AP' },
+  { role: 'ENVOY', name: 'Palak Kanwar Chouhan', photo: '/assets/members/palak-kanwar-chouhan.svg', focus: 'Representation · Speaking · Outreach', bio: "Represents the Circle in rooms it hasn't entered yet — speaking, outreach and the first impressions that matter.", initials: 'PC' },
+  { role: 'ORACLE', name: 'Sanvi Saraswat', photo: '/assets/members/sanvi-saraswat.svg', focus: 'Research · Knowledge · Insight', bio: 'Goes deep before the Circle moves — research, precedent and the insight that keeps decisions honest.', initials: 'SS' },
+  { role: 'SEEKER', name: 'Swayam', photo: '/assets/members/swayam.svg', focus: 'AI/ML · Development · Exploration', bio: "Explores the edges — AI, ML and the experimental work that might become tomorrow's pillar.", initials: 'SW' },
+  { role: 'STRATEGIST', name: 'Sumit Kakani', photo: '/assets/members/sumit-kakani.svg', focus: 'Strategy · Planning · Growth', bio: 'Maps out where the Circle goes next — long-term strategy, growth plans and the questions that shape direction early.', initials: 'SK' },
+  { role: 'CURATOR', name: 'Himanshi Dikshit', photo: '/assets/members/himanshi-dikshit.svg', focus: 'Design · Experience · Detail', bio: 'Shapes how every touchpoint of the Circle feels — from event design to the small details people always feel, rarely notice.', initials: 'HD' },
+  { role: 'CATALYST', name: 'Piyush Lalwani', photo: '/assets/members/piyush-lalwani.svg', focus: 'Partnerships · Growth · Network', bio: "Builds bridges the Circle doesn't have yet — partnerships, collaborations and the network effect behind the next project.", initials: 'PL' },
 ];
 
 export const journal = [
