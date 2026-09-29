@@ -352,17 +352,41 @@ body.hero-in .hero-bottom{opacity:1;transform:none;transition-delay:.96s}
 @keyframes branchSway{from{transform:rotate(-.8deg)}to{transform:rotate(1deg)}}
 @keyframes plantSway{from{transform:rotate(-1.2deg)}to{transform:rotate(1.4deg)}}
 .hero-leaves{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden}
-.fall-leaf{position:absolute;top:-30px;width:20px;height:20px;color:#2a251d;fill:#2a251d;opacity:0;animation:leafFall 20s linear infinite}
-.fall-leaf-0{left:74%;animation-duration:19s}
-.fall-leaf-1{left:84%;width:15px;height:15px;animation-duration:24s;animation-delay:-9s;color:#8a6d34;fill:#8a6d34}
-.fall-leaf-2{left:62%;width:13px;height:13px;animation-duration:27s;animation-delay:-15s}
-.fall-leaf-3{left:92%;animation-duration:22s;animation-delay:-5s}
-@keyframes leafFall{
-  0%{opacity:0;transform:translate(0,0) rotate(0deg)}
-  8%{opacity:.85}
-  50%{transform:translate(-60px,48vh) rotate(200deg)}
-  92%{opacity:.85}
-  100%{opacity:0;transform:translate(30px,98vh) rotate(420deg)}}
 /* bottom bar sits on a soft cream mist so it stays legible over the dark near ridge */
 .hero-bottom:before{content:"";position:absolute;left:-8.2vw;right:-6vw;top:-30px;bottom:-30px;z-index:-1;background:linear-gradient(180deg,rgba(244,240,230,0),rgba(244,240,230,.86) 60%)}
-@media(prefers-reduced-motion:reduce){.ridge,.hero-branch,.hero-plant,.fall-leaf{animation:none}.fall-leaf{display:none}}
+@media(prefers-reduced-motion:reduce){.ridge,.hero-branch,.hero-plant{animation:none}}
+
+
+/* =========================================================
+   V10 — leaves that land + canyon-dusk visual break
+   ========================================================= */
+.gleaf{position:absolute;top:-30px;display:block;opacity:0;
+  animation:gleafDrop var(--fall) cubic-bezier(.35,.1,.55,1) forwards,
+            gleafFade 1.8s ease calc(var(--fall) + var(--rest)) forwards}
+.gleaf-in{display:block;width:100%;height:100%;animation:gleafSway var(--fall) ease-in-out forwards}
+.gleaf svg{display:block;width:100%;height:100%;fill:currentColor;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+@keyframes gleafDrop{0%{opacity:0;transform:translateY(0)}6%{opacity:.92}100%{opacity:.92;transform:translateY(var(--dist))}}
+@keyframes gleafFade{to{opacity:0}}
+@keyframes gleafSway{
+  0%{transform:translateX(0) rotate(0deg) scaleY(1)}
+  20%{transform:translateX(var(--sway)) rotate(calc(var(--spin) * .25)) scaleY(1)}
+  40%{transform:translateX(calc(var(--sway) * -.6)) rotate(calc(var(--spin) * .5)) scaleY(1)}
+  60%{transform:translateX(calc(var(--sway) * .7)) rotate(calc(var(--spin) * .7)) scaleY(1)}
+  80%{transform:translateX(calc(var(--sway) * -.3)) rotate(calc(var(--spin) * .9)) scaleY(.9)}
+  100%{transform:translateX(calc(var(--sway) * .12)) rotate(var(--land)) scaleY(.55)}}
+
+.visual-break{height:clamp(380px,54vh,540px);align-items:flex-start;padding-top:clamp(52px,9vh,92px);background:#090807}
+.vb-scene{position:absolute;left:0;bottom:0;width:100%;height:100%}
+.visual-break:before{background:linear-gradient(90deg,rgba(0,0,0,.4),transparent 28%,transparent 72%,rgba(0,0,0,.4))}
+.visual-break:after{background:linear-gradient(180deg,rgba(9,8,7,.55),transparent 28%)}
+.visual-break span{font-size:clamp(20px,2.4vw,34px);letter-spacing:.2em}
+.visual-break.in .line-inner{transform:none;transition-delay:.2s}
+.vb-glow{animation:vbPulse 7s ease-in-out infinite alternate}
+@keyframes vbPulse{from{opacity:.82}to{opacity:1}}
+.vb-clouds{animation:vbDrift 40s ease-in-out infinite alternate;filter:blur(2px)}
+@keyframes vbDrift{from{transform:translateX(-36px)}to{transform:translateX(36px)}}
+.vb-reflect{opacity:.5;filter:blur(1.2px)}
+.vb-ripples path{animation:vbRipple 6s ease-in-out infinite alternate}
+.vb-ripples path:nth-child(2n){animation-delay:-2.5s}
+@keyframes vbRipple{from{transform:translateX(-18px);opacity:.25}to{transform:translateX(18px);opacity:.9}}
+@media(prefers-reduced-motion:reduce){.gleaf{display:none}.vb-glow,.vb-clouds,.vb-ripples path{animation:none}}

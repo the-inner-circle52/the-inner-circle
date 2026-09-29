@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 // Layered misty ridgelines for the hero. Deterministic (no Math.random) so the
 // shapes are identical on every render.
@@ -50,6 +50,86 @@ const LAYERS = SPEC.map((s, i) => {
   };
 });
 
+
+// Leaves fall all the way down, settle on the "ground" near the bottom of the
+// hero, rest there for 10-20s, then fade away. New ones keep arriving.
+const LEAF_COLORS = ['#2a251d', '#8a6d34', '#a4552b', '#c39a48', '#3a3126'];
+const rand = (a, b) => a + Math.random() * (b - a);
+
+function FallingLeaves() {
+  const boxRef = useRef(null);
+  const [leaves, setLeaves] = useState([]);
+  const idRef = useRef(0);
+  const countRef = useRef(0);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
+    const timers = new Set();
+
+    const spawn = () => {
+      const box = boxRef.current;
+      if (!box || countRef.current >= 8 || document.hidden) return;
+      const h = box.clientHeight || 700;
+      const id = ++idRef.current;
+      const fall = rand(9, 15);
+      const rest = rand(10, 20);
+      const groundY = h - rand(48, 120);
+      const leaf = {
+        id,
+        left: rand(40, 96),
+        size: rand(12, 22),
+        color: LEAF_COLORS[Math.floor(Math.random() * LEAF_COLORS.length)],
+        fall,
+        rest,
+        dist: groundY + 30,
+        sway: rand(40, 90),
+        spin: rand(200, 460) * (Math.random() < 0.5 ? -1 : 1),
+        land: rand(0, 360),
+      };
+      countRef.current += 1;
+      setLeaves((l) => [...l, leaf]);
+      const t = setTimeout(() => {
+        countRef.current -= 1;
+        setLeaves((l) => l.filter((x) => x.id !== id));
+        timers.delete(t);
+      }, (fall + rest + 2.2) * 1000);
+      timers.add(t);
+    };
+
+    spawn();
+    const first = setTimeout(spawn, 2500);
+    timers.add(first);
+    const iv = setInterval(spawn, 4200);
+    return () => { clearInterval(iv); timers.forEach(clearTimeout); };
+  }, []);
+
+  return (
+    <div className="hero-leaves" ref={boxRef} aria-hidden="true">
+      {leaves.map((l) => (
+        <span
+          key={l.id}
+          className="gleaf"
+          style={{
+            left: `${l.left}%`,
+            width: l.size,
+            height: l.size,
+            color: l.color,
+            '--dist': `${l.dist}px`,
+            '--fall': `${l.fall}s`,
+            '--rest': `${l.rest}s`,
+            '--sway': `${l.sway}px`,
+            '--spin': `${l.spin}deg`,
+            '--land': `${l.land}deg`,
+          }}
+        >
+          <span className="gleaf-in">
+            <svg viewBox="-24 -24 48 48"><use href="#hl" x="-24" y="-24" width="48" height="48" /></svg>
+          </span>
+        </span>
+      ))}
+    </div>
+  );
+}
 
 export default function Hero() {
   return (
@@ -113,12 +193,7 @@ export default function Hero() {
           ))}
         </g>
       </svg>
-
-      <div className="hero-leaves" aria-hidden="true">
-        {[0, 1, 2, 3].map((i) => (
-          <svg key={i} className={`fall-leaf fall-leaf-${i}`} viewBox="-24 -24 48 48"><use href="#hl" x="-24" y="-24" width="48" height="48" /></svg>
-        ))}
-      </div>
+      <FallingLeaves />
 
       <div className="hero-copy">
         <p className="eyebrow">IDEAS&nbsp;&nbsp;·&nbsp;&nbsp;PEOPLE&nbsp;&nbsp;·&nbsp;&nbsp;PROJECTS&nbsp;&nbsp;·&nbsp;&nbsp;IMPACT</p>
