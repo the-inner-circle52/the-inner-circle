@@ -1,5 +1,5 @@
 import React from 'react';
-import { members } from '../data.js';
+import { useContentList } from '../ContentContext.jsx';
 import { useModal } from '../ModalContext.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 
@@ -31,6 +31,7 @@ function MemberCard({ m }) {
 }
 
 export default function People() {
+  const [members] = useContentList('members');
   const [headRef, headVisible] = useReveal();
   return (
     <section className="people-list section" id="circle">

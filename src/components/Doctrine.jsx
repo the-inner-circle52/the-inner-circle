@@ -1,9 +1,10 @@
 import React from 'react';
-import { principles } from '../data.js';
+import { useContentList } from '../ContentContext.jsx';
 import { useModal } from '../ModalContext.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 
 export default function Doctrine() {
+  const [principles] = useContentList('principles');
   const { openModal } = useModal();
   const [leftRef, leftVisible] = useReveal();
   const [gridRef, gridVisible] = useReveal();

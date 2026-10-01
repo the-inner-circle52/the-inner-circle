@@ -1,5 +1,5 @@
 import React from 'react';
-import AnimatedPanel from './AnimatedPanel.jsx';
+import Scenery from './Scenery.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 
 export default function Entry() {
@@ -8,9 +8,11 @@ export default function Entry() {
 
   return (
     <section className="entry section" id="entry">
-      <div ref={imgRef} className={`entry-image img-reveal${imgVisible ? ' visible' : ''}`}>
-        <div className="motif-ring" aria-hidden="true" />
-        <AnimatedPanel variant="dark" />
+      <div ref={imgRef} className="entry-image">
+        <div className={`reveal-clip${imgVisible ? ' visible' : ''}`}>
+          <Scenery variant="dark" />
+          <div className="motif-ring" aria-hidden="true" />
+        </div>
       </div>
       <div ref={copyRef} className={`entry-copy reveal${copyVisible ? ' visible' : ''}`}>
         <span className="eyebrow">THE NEXT MOVE</span>

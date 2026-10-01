@@ -1,5 +1,5 @@
 import React from 'react';
-import { projects } from '../data.js';
+import { useContentList } from '../ContentContext.jsx';
 import { useModal } from '../ModalContext.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 
@@ -31,6 +31,7 @@ function ProjectCard({ p }) {
 }
 
 export default function Projects() {
+  const [projects] = useContentList('projects');
   const [headRef, headVisible] = useReveal();
   return (
     <section className="projects section" id="projects">

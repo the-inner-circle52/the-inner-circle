@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { pillars } from '../data.js';
+import { useContentList } from '../ContentContext.jsx';
 
 export default function Pillars() {
+  const [pillars] = useContentList('pillars');
   const [activeIndex, setActiveIndex] = useState(null);
 
   const toggle = (i) => setActiveIndex((cur) => (cur === i ? null : i));

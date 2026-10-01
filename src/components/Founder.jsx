@@ -1,48 +1,50 @@
-import React, { useEffect, useState } from 'react';
-import { members } from '../data.js';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useContentList } from '../ContentContext.jsx';
 import { useReveal } from '../hooks/useReveal.js';
-
-const SLIDES = [
-  {
-    name: 'Aditya Sharma',
-    role: 'FOUNDER',
-    eyebrow: 'FOUNDER REVEAL',
-    photo: '/assets/aditya-portrait-clean.jpg',
-    initials: 'AS',
-    quote: "“People build what's next.”",
-    sub: "That's the circle.",
-  },
-  ...members.map((m, i) => ({
-    name: m.name,
-    role: m.role,
-    eyebrow: `MEET THE CIRCLE · ${String(i + 1).padStart(2, '0')}`,
-    photo: m.photo,
-    initials: m.initials,
-    quote: m.bio,
-    sub: m.focus,
-  })),
-];
 
 const INTERVAL = 7000;
 
 export default function Founder() {
+  const [members] = useContentList('members');
   const [slide, setSlide] = useState(0);
   const [copyRef, copyVisible] = useReveal();
 
-  useEffect(() => {
-    const id = setInterval(() => setSlide((s) => (s + 1) % SLIDES.length), INTERVAL);
-    return () => clearInterval(id);
-  }, []);
+  const slides = useMemo(() => [
+    {
+      name: 'Aditya Sharma',
+      role: 'FOUNDER',
+      eyebrow: 'FOUNDER REVEAL',
+      photo: '/assets/aditya-portrait-clean.jpg',
+      initials: 'AS',
+      quote: "“People build what's next.”",
+      sub: "That's the circle.",
+    },
+    ...members.map((m, i) => ({
+      name: m.name,
+      role: m.role,
+      eyebrow: `MEET THE CIRCLE · ${String(i + 1).padStart(2, '0')}`,
+      photo: m.photo,
+      initials: m.initials,
+      quote: m.bio,
+      sub: m.focus,
+    })),
+  ], [members]);
 
-  const cur = SLIDES[slide];
+  useEffect(() => {
+    setSlide((s) => (s >= slides.length ? 0 : s));
+    const id = setInterval(() => setSlide((s) => (s + 1) % slides.length), INTERVAL);
+    return () => clearInterval(id);
+  }, [slides.length]);
+
+  const cur = slides[slide] || slides[0];
   const words = cur.name.toUpperCase().split(' ');
   const longest = Math.max(...words.map((w) => w.length));
 
   return (
     <section className="founder section" id="people">
       <div className="founder-image">
-        {SLIDES.map((s, i) => (
-          <div key={s.name} className={`founder-slide${i === slide ? ' active' : ''}`}>
+        {slides.map((s, i) => (
+          <div key={s.name + i} className={`founder-slide${i === slide ? ' active' : ''}`}>
             {s.photo ? (
               <img src={s.photo} alt={`${s.name}, ${s.role}`} />
             ) : (

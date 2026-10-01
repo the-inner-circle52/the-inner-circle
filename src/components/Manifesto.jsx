@@ -1,10 +1,11 @@
 import React from 'react';
-import AnimatedPanel from './AnimatedPanel.jsx';
-import { manifesto } from '../data.js';
+import Scenery from './Scenery.jsx';
+import { useContentList } from '../ContentContext.jsx';
 import { useModal } from '../ModalContext.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 
 export default function Manifesto() {
+  const [manifesto] = useContentList('manifesto');
   const { openModal } = useModal();
   const [leftRef, leftVisible] = useReveal();
   const [rightRef, rightVisible] = useReveal();
@@ -22,10 +23,12 @@ export default function Manifesto() {
 
   return (
     <section className="intro-grid section" id="manifesto">
-      <div ref={imgRef} className={`section-image${imgVisible ? ' visible' : ''} img-reveal`}>
-        <div className="motif-ring" aria-hidden="true" />
-        <AnimatedPanel variant="light" />
-        <div className="image-label">PEOPLE<br />IDEAS<br />PROJECTS<br />IMPACT</div>
+      <div ref={imgRef} className="section-image">
+        <div className={`reveal-clip${imgVisible ? ' visible' : ''}`}>
+          <Scenery variant="light" />
+          <div className="motif-ring" aria-hidden="true" />
+          <div className="image-label">PEOPLE<br />IDEAS<br />PROJECTS<br />IMPACT</div>
+        </div>
       </div>
 
       <div ref={leftRef} className={`manifesto-copy reveal${leftVisible ? ' visible' : ''}`}>

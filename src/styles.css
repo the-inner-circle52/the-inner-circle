@@ -157,6 +157,24 @@ body.hero-in .hero-side{opacity:1;transform:none;transition-delay:.5s}
 body.hero-in .hero-bottom{opacity:1;transform:none;transition-delay:.96s}
 
 /* Panel imagery wipes open like a curtain as it enters view. */
+/* NOTE: clip-path must never sit on the element IntersectionObserver is
+   watching — a fully clipped element has zero visible area, so the browser
+   reports it as "never intersecting" and it can never trigger its own
+   reveal. The observed element (.section-image/.entry-image) stays
+   unclipped; the clip-path lives on this nested .reveal-clip wrapper instead. */
+.scenery{position:absolute;inset:0;width:100%;height:100%;display:block}
+.scenery-sun{animation:scenerySunPulse 6s ease-in-out infinite}
+@keyframes scenerySunPulse{0%,100%{opacity:1}50%{opacity:.78}}
+.scenery-ridge{animation:sceneryDrift 22s ease-in-out infinite alternate;transform-box:fill-box}
+.scenery-ridge-0{animation-duration:26s}.scenery-ridge-1{animation-duration:22s;animation-delay:-4s}
+.scenery-ridge-2{animation-duration:19s;animation-delay:-8s}.scenery-ridge-3{animation-duration:16s;animation-delay:-2s}
+@keyframes sceneryDrift{from{transform:translateX(-1.5px)}to{transform:translateX(1.5px)}}
+.scenery-foliage{animation:sceneryFoliageSway 8s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:0% 100%}
+@keyframes sceneryFoliageSway{from{transform:rotate(-.6deg)}to{transform:rotate(.8deg)}}
+@media(prefers-reduced-motion:reduce){.scenery-sun,.scenery-ridge,.scenery-foliage{animation:none}}
+
+.reveal-clip{position:absolute;inset:0;clip-path:inset(0 0 100% 0);transition:clip-path 1.15s cubic-bezier(.22,.9,.24,1)}
+.reveal-clip.visible{clip-path:inset(0 0 0% 0)}
 .img-reveal{clip-path:inset(0 0 100% 0);transition:clip-path 1.15s cubic-bezier(.22,.9,.24,1)}
 .img-reveal.visible{clip-path:inset(0 0 0% 0)}
 
@@ -170,6 +188,7 @@ body.hero-in .hero-bottom{opacity:1;transform:none;transition-delay:.96s}
 @media(prefers-reduced-motion:reduce){
   .line-inner{transform:none!important}
   .img-reveal{clip-path:none!important}
+  .reveal-clip{clip-path:none!important}
 }
 
 /* =========================================================
@@ -444,6 +463,18 @@ body.hero-in .hero-bottom{opacity:1;transform:none;transition-delay:.96s}
 .admin-hint{font-size:11.5px;color:#8a8577;line-height:1.7;margin:0 0 26px;max-width:560px}
 .admin-hint code{background:#e9e5d8;padding:1px 5px;font-family:var(--mono);font-size:10.5px}
 .admin-copy-btn{background:#151311;color:#f4f1ea;border:0;padding:9px 14px;font:400 10px var(--mono);letter-spacing:.12em;cursor:pointer}
+.admin-panel-head{align-items:flex-start}
+.admin-panel-head-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.admin-ghost-btn{background:none;border:1px solid #d8d3c4;color:#5c584d;padding:9px 14px;font:400 10px var(--mono);letter-spacing:.1em;cursor:pointer}
+.admin-ghost-btn:hover{border-color:#151311;color:#151311}
+.admin-saved-flash{font:400 10px var(--mono);letter-spacing:.06em;color:#4a7a4a;animation:adminFlashIn .3s ease}
+@keyframes adminFlashIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.admin-row{align-items:center}
+.admin-row-order{display:flex;flex-direction:column;gap:3px;flex-shrink:0}
+.admin-row-order button{background:#fff;border:1px solid #d8d3c4;color:#5c584d;width:26px;height:22px;font-size:11px;line-height:1;cursor:pointer;transition:background .2s,color .2s}
+.admin-row-order button:hover:not(:disabled){background:#151311;color:#f4f1ea;border-color:#151311}
+.admin-row-order button:disabled{opacity:.3;cursor:default}
+.admin-row-summary{flex:1}
 .admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-top:20px}
 .admin-stat{background:#fff;border:1px solid #e4e0d3;padding:22px}
 .admin-stat b{display:block;font:500 34px var(--serif)}

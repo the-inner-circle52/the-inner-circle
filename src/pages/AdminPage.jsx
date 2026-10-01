@@ -1,12 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  members as initialMembers,
-  projects as initialProjects,
-  journal as initialJournal,
-  principles as initialPrinciples,
-  pillars as initialPillars,
-  manifesto as initialManifesto,
-} from '../data.js';
+import { useContentList, useResetList } from '../ContentContext.jsx';
 
 const SESSION_KEY = 'circle-admin-session';
 // NOTE: this is a soft client-side gate for a static site with no backend —
@@ -90,42 +83,61 @@ function Login({ onUnlock }) {
   );
 }
 
-function EditableTable({ kind, items, setItems }) {
+function EditableTable({ kind }) {
+  const [items, setItems] = useContentList(kind);
+  const resetList = useResetList(kind);
   const fields = FIELD_SETS[kind];
   const [draft, setDraft] = useState(emptyOf(fields));
   const [editingIndex, setEditingIndex] = useState(null);
   const [editDraft, setEditDraft] = useState(null);
+  const [savedFlash, setSavedFlash] = useState(false);
+
+  const flashSaved = () => { setSavedFlash(true); setTimeout(() => setSavedFlash(false), 1200); };
 
   const addItem = (e) => {
     e.preventDefault();
     if (!draft[fields[1]?.key] && !draft[fields[0]?.key]) return;
     setItems([...items, draft]);
     setDraft(emptyOf(fields));
+    flashSaved();
   };
 
-  const removeItem = (i) => setItems(items.filter((_, idx) => idx !== i));
+  const removeItem = (i) => { setItems(items.filter((_, idx) => idx !== i)); flashSaved(); };
+
+  const moveItem = (i, dir) => {
+    const j = i + dir;
+    if (j < 0 || j >= items.length) return;
+    const next = [...items];
+    [next[i], next[j]] = [next[j], next[i]];
+    setItems(next);
+    flashSaved();
+  };
 
   const startEdit = (i) => { setEditingIndex(i); setEditDraft({ ...items[i] }); };
   const saveEdit = () => {
     setItems(items.map((it, idx) => (idx === editingIndex ? editDraft : it)));
     setEditingIndex(null);
     setEditDraft(null);
+    flashSaved();
   };
 
-  const copyJSON = () => {
-    const json = JSON.stringify(items, null, 2);
-    navigator.clipboard?.writeText(json);
-  };
+  const copyJSON = () => navigator.clipboard?.writeText(JSON.stringify(items, null, 2));
 
   return (
     <div className="admin-panel">
       <div className="admin-panel-head">
         <h2>{kind}</h2>
-        <button className="admin-copy-btn" onClick={copyJSON} type="button">COPY AS JSON</button>
+        <div className="admin-panel-head-actions">
+          {savedFlash && <span className="admin-saved-flash">Saved — live on the site now</span>}
+          <button className="admin-ghost-btn" onClick={() => confirm('Reset this section back to its built-in defaults? This discards any edits made here.') && resetList()} type="button">RESET DEFAULTS</button>
+          <button className="admin-copy-btn" onClick={copyJSON} type="button">COPY AS JSON</button>
+        </div>
       </div>
       <p className="admin-hint">
-        Changes here live only in this browser tab — there's no backend to save to.
-        Use "Copy as JSON" and paste the array into <code>src/data.js</code> to make it permanent.
+        Changes here save to this browser automatically and update the live site immediately —
+        including in another tab already open to the home page. They are NOT shared with other
+        people's browsers (there's no server), so use "Copy as JSON" and paste into
+        <code> src/data.js</code> to ship a change to everyone permanently.
       </p>
 
       <div className="admin-table">
@@ -158,6 +170,10 @@ function EditableTable({ kind, items, setItems }) {
               </>
             ) : (
               <>
+                <div className="admin-row-order">
+                  <button type="button" disabled={i === 0} onClick={() => moveItem(i, -1)} aria-label="Move up">↑</button>
+                  <button type="button" disabled={i === items.length - 1} onClick={() => moveItem(i, 1)} aria-label="Move down">↓</button>
+                </div>
                 <div className="admin-row-summary">
                   <b>{it[fields[1]?.key] || it[fields[0]?.key]}</b>
                   <small>{it[fields[0]?.key]}</small>
@@ -192,7 +208,9 @@ function EditableTable({ kind, items, setItems }) {
   );
 }
 
-function ManifestoEditor({ paragraphs, setParagraphs }) {
+function ManifestoEditor() {
+  const [paragraphs, setParagraphs] = useContentList('manifesto');
+  const resetList = useResetList('manifesto');
   const update = (i, val) => setParagraphs(paragraphs.map((p, idx) => (idx === i ? val : p)));
   const remove = (i) => setParagraphs(paragraphs.filter((_, idx) => idx !== i));
   const copyJSON = () => navigator.clipboard?.writeText(JSON.stringify(paragraphs, null, 2));
@@ -201,9 +219,16 @@ function ManifestoEditor({ paragraphs, setParagraphs }) {
     <div className="admin-panel">
       <div className="admin-panel-head">
         <h2>manifesto</h2>
-        <button className="admin-copy-btn" onClick={copyJSON} type="button">COPY AS JSON</button>
+        <div className="admin-panel-head-actions">
+          <button className="admin-ghost-btn" onClick={() => confirm('Reset to the built-in manifesto text?') && resetList()} type="button">RESET DEFAULTS</button>
+          <button className="admin-copy-btn" onClick={copyJSON} type="button">COPY AS JSON</button>
+        </div>
       </div>
-      <p className="admin-hint">One paragraph per box, in order. Paste the copied array into the <code>manifesto</code> export in <code>src/data.js</code>.</p>
+      <p className="admin-hint">
+        One paragraph per box, in order — this is what "READ THE FULL MANIFESTO" shows on the
+        live site, updated immediately. Paste the copied array into the <code>manifesto</code> export
+        in <code>src/data.js</code> to make it permanent.
+      </p>
       {paragraphs.map((p, i) => (
         <div className="admin-manifesto-row" key={i}>
           <textarea value={p} onChange={(e) => update(i, e.target.value)} />
@@ -229,12 +254,10 @@ export default function AdminPage() {
   const [unlocked, setUnlocked] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1');
   const [tab, setTab] = useState('overview');
 
-  const [members, setMembers] = useState(initialMembers);
-  const [projects, setProjects] = useState(initialProjects);
-  const [journal, setJournal] = useState(initialJournal);
-  const [principles, setPrinciples] = useState(initialPrinciples);
-  const [pillars, setPillars] = useState(initialPillars);
-  const [manifestoParas, setManifestoParas] = useState(initialManifesto);
+  const [members] = useContentList('members');
+  const [projects] = useContentList('projects');
+  const [journal] = useContentList('journal');
+  const [principles] = useContentList('principles');
 
   const stats = useMemo(() => ([
     { label: 'Members', value: members.length },
@@ -276,7 +299,11 @@ export default function AdminPage() {
         {tab === 'overview' && (
           <div className="admin-panel">
             <h2>overview</h2>
-            <p className="admin-hint">A quick snapshot of what's currently on the site (in this browser session).</p>
+            <p className="admin-hint">
+              A live snapshot of what's currently on the site. Edits made in any tab of this
+              dashboard apply to the real site straight away — open the home page in another tab
+              to watch it update.
+            </p>
             <div className="admin-stats">
               {stats.map((s) => (
                 <div key={s.label} className="admin-stat">
@@ -287,12 +314,12 @@ export default function AdminPage() {
             </div>
           </div>
         )}
-        {tab === 'members' && <EditableTable kind="members" items={members} setItems={setMembers} />}
-        {tab === 'projects' && <EditableTable kind="projects" items={projects} setItems={setProjects} />}
-        {tab === 'journal' && <EditableTable kind="journal" items={journal} setItems={setJournal} />}
-        {tab === 'principles' && <EditableTable kind="principles" items={principles} setItems={setPrinciples} />}
-        {tab === 'pillars' && <EditableTable kind="pillars" items={pillars} setItems={setPillars} />}
-        {tab === 'manifesto' && <ManifestoEditor paragraphs={manifestoParas} setParagraphs={setManifestoParas} />}
+        {tab === 'members' && <EditableTable kind="members" />}
+        {tab === 'projects' && <EditableTable kind="projects" />}
+        {tab === 'journal' && <EditableTable kind="journal" />}
+        {tab === 'principles' && <EditableTable kind="principles" />}
+        {tab === 'pillars' && <EditableTable kind="pillars" />}
+        {tab === 'manifesto' && <ManifestoEditor />}
       </main>
     </div>
   );

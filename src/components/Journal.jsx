@@ -1,5 +1,5 @@
 import React from 'react';
-import { journal } from '../data.js';
+import { useContentList } from '../ContentContext.jsx';
 import { useModal } from '../ModalContext.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 
@@ -31,6 +31,7 @@ function NoteCard({ n }) {
 }
 
 export default function Journal() {
+  const [journal] = useContentList('journal');
   const [headRef, headVisible] = useReveal();
   return (
     <section className="journal section" id="journal">
