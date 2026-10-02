@@ -46,25 +46,4 @@ public/
   assets/                  – logo + founder portrait (only two raster images left)
 ```
 
-## Notes on content
 
-- **Manifesto**: `src/data.js` → `manifesto` array. Click "READ THE FULL
-  MANIFESTO" on the site, or edit the array directly.
-- **Team bios**: `src/data.js` → `members` array (role, name, focus, bio,
-  initials for the placeholder avatar). Three new members were added:
-  Sumit Kakani, Himanshi Dikshit, Piyush Lalwani — I invented their role
-  titles and one-line bios to match the existing pattern; edit freely.
-- **Photo carousel**: `src/components/Founder.jsx` cycles through the
-  founder's real photo plus a generated initial-avatar for every member
-  in `data.js`, every ~3.2s. Swap in real photos by adding a `photo: '/assets/...'`
-  field per member (drop the file in `public/assets/`).
-- **Journal / doctrine detail text**: also in `data.js`, expand as needed.
-
-## What didn't carry over 1:1 from the static version
-
-To keep this within scope, a few purely cosmetic micro-interactions from
-the original vanilla JS (the mouse-follow ambient glow orb, magnetic
-button pull, and continuous scroll-linked image parallax) were left out
-of the conversion. Everything else — reveal-on-scroll, the hero drift/
-sweep animation, the line-mask heading wipes, image curtain-reveals, and
-all layout/animation — carried over.

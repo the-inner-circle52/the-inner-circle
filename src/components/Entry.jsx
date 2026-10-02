@@ -11,7 +11,6 @@ export default function Entry() {
       <div ref={imgRef} className="entry-image">
         <div className={`reveal-clip${imgVisible ? ' visible' : ''}`}>
           <Scenery variant="dark" />
-          <div className="motif-ring" aria-hidden="true" />
         </div>
       </div>
       <div ref={copyRef} className={`entry-copy reveal${copyVisible ? ' visible' : ''}`}>

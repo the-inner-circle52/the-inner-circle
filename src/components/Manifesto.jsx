@@ -26,7 +26,6 @@ export default function Manifesto() {
       <div ref={imgRef} className="section-image">
         <div className={`reveal-clip${imgVisible ? ' visible' : ''}`}>
           <Scenery variant="light" />
-          <div className="motif-ring" aria-hidden="true" />
           <div className="image-label">PEOPLE<br />IDEAS<br />PROJECTS<br />IMPACT</div>
         </div>
       </div>
