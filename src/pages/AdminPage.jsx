@@ -100,6 +100,19 @@ function PhotoField({ value, onChange }) {
           {busy ? 'UPLOADING…' : 'UPLOAD PHOTO'}
           <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} disabled={busy} hidden />
         </label>
+        {value && (
+          <button
+            className="admin-remove-photo"
+            type="button"
+            onClick={() => {
+              setError('');
+              onChange('');
+            }}
+            disabled={busy}
+          >
+            REMOVE PHOTO
+          </button>
+        )}
         <p className="admin-photo-note">
           Cropped to portrait and converted to black and white to match Aditya’s photo.
         </p>
