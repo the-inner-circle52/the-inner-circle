@@ -1,13 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useContentList } from '../ContentContext.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 
 const INTERVAL = 7000;
+const DRAG_THRESHOLD = 60; // px of horizontal drag before it counts as a swipe
 
 export default function Founder() {
   const [members] = useContentList('members');
   const [slide, setSlide] = useState(0);
   const [copyRef, copyVisible] = useReveal();
+  const [dragX, setDragX] = useState(0);
+  const dragState = useRef({ active: false, startX: 0 });
 
   const slides = useMemo(() => [
     {
@@ -32,9 +35,37 @@ export default function Founder() {
 
   useEffect(() => {
     setSlide((s) => (s >= slides.length ? 0 : s));
-    const id = setInterval(() => setSlide((s) => (s + 1) % slides.length), INTERVAL);
-    return () => clearInterval(id);
   }, [slides.length]);
+
+  // Restarting this timer on every slide change (not just a plain interval)
+  // means a manual drag always gets a full, undisturbed 7s before the next
+  // auto-advance, instead of fighting with whatever the timer was mid-way through.
+  useEffect(() => {
+    const id = setTimeout(() => setSlide((s) => (s + 1) % slides.length), INTERVAL);
+    return () => clearTimeout(id);
+  }, [slide, slides.length]);
+
+  const goTo = (i) => setSlide(((i % slides.length) + slides.length) % slides.length);
+  const next = () => goTo(slide + 1);
+  const prev = () => goTo(slide - 1);
+
+  // Left/right drag (mouse or touch, via pointer events) to swap photos —
+  // no visible button, just grab and drag the image itself.
+  const onPointerDown = (e) => {
+    dragState.current = { active: true, startX: e.clientX };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const onPointerMove = (e) => {
+    if (!dragState.current.active) return;
+    setDragX(e.clientX - dragState.current.startX);
+  };
+  const endDrag = () => {
+    if (!dragState.current.active) return;
+    dragState.current.active = false;
+    if (dragX <= -DRAG_THRESHOLD) next();
+    else if (dragX >= DRAG_THRESHOLD) prev();
+    setDragX(0);
+  };
 
   const cur = slides[slide] || slides[0];
   const words = cur.name.toUpperCase().split(' ');
@@ -42,11 +73,22 @@ export default function Founder() {
 
   return (
     <section className="founder section" id="people">
-      <div className="founder-image">
+      <div
+        className="founder-image founder-drag"
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        onPointerLeave={endDrag}
+      >
         {slides.map((s, i) => (
-          <div key={s.name + i} className={`founder-slide${i === slide ? ' active' : ''}`}>
+          <div
+            key={s.name + i}
+            className={`founder-slide${i === slide ? ' active' : ''}${dragX !== 0 && i === slide ? ' dragging' : ''}`}
+            style={i === slide ? { transform: `translateX(${dragX}px)` } : undefined}
+          >
             {s.photo ? (
-              <img src={s.photo} alt={`${s.name}, ${s.role}`} />
+              <img src={s.photo} alt={`${s.name}, ${s.role}`} draggable={false} />
             ) : (
               <div className="founder-slide-avatar"><span>{s.initials}</span></div>
             )}

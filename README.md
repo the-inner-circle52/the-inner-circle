@@ -27,6 +27,9 @@ npm run preview
 `npm run build` outputs a static `dist/` folder you can host anywhere
 (Netlify, Vercel, GitHub Pages, your own server).
 
+Vercel deployments include a rewrite to `index.html` so direct visits to
+client-side routes such as `/AshtheBuilder` load the React app.
+
 ## Project structure
 
 ```
@@ -45,5 +48,4 @@ src/
 public/
   assets/                  – logo + founder portrait (only two raster images left)
 ```
-
 
