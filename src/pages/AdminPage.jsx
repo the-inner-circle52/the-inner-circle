@@ -2,8 +2,75 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useContentList, useContentSync, useResetList } from '../ContentContext.jsx';
 
 const SESSION_KEY = 'circle-admin-password';
+const SEGMENTATION_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation@0.1.1675465747/';
 const PORTRAIT_WIDTH = 640;
 const PORTRAIT_HEIGHT = 800;
+
+let segmentationLibraryPromise;
+let segmentationInstancePromise;
+let segmentationQueue = Promise.resolve();
+let pendingSegmentation;
+
+function loadSegmentationLibrary() {
+  if (window.SelfieSegmentation) return Promise.resolve(window.SelfieSegmentation);
+  if (segmentationLibraryPromise) return segmentationLibraryPromise;
+
+  segmentationLibraryPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `${SEGMENTATION_CDN}selfie_segmentation.js`;
+    script.crossOrigin = 'anonymous';
+    script.onload = () => {
+      if (window.SelfieSegmentation) resolve(window.SelfieSegmentation);
+      else reject(new Error('The background-removal model did not initialize.'));
+    };
+    script.onerror = () => reject(new Error('Could not download the background-removal model. Check your internet connection and try again.'));
+    document.head.appendChild(script);
+  }).catch((error) => {
+    segmentationLibraryPromise = null;
+    throw error;
+  });
+
+  return segmentationLibraryPromise;
+}
+
+async function getSegmentationInstance() {
+  if (!segmentationInstancePromise) {
+    segmentationInstancePromise = (async () => {
+      const SelfieSegmentation = await loadSegmentationLibrary();
+      const segmenter = new SelfieSegmentation({
+        locateFile: (file) => `${SEGMENTATION_CDN}${file}`,
+      });
+      segmenter.setOptions({ modelSelection: 0 });
+      segmenter.onResults((results) => {
+        const pending = pendingSegmentation;
+        pendingSegmentation = null;
+        if (pending) pending.resolve(results);
+      });
+      await segmenter.initialize();
+      return segmenter;
+    })().catch((error) => {
+      segmentationInstancePromise = null;
+      throw error;
+    });
+  }
+  return segmentationInstancePromise;
+}
+
+function segmentPortrait(sourceCanvas) {
+  const process = async () => {
+    const segmenter = await getSegmentationInstance();
+    return new Promise((resolve, reject) => {
+      pendingSegmentation = { resolve, reject };
+      segmenter.send({ image: sourceCanvas }).catch((error) => {
+        pendingSegmentation = null;
+        reject(new Error(`Could not remove the image background: ${error.message}`));
+      });
+    });
+  };
+  const result = segmentationQueue.then(process, process);
+  segmentationQueue = result.catch(() => {});
+  return result;
+}
 
 function stylizePortrait(file) {
   return new Promise((resolve, reject) => {
@@ -22,11 +89,11 @@ function stylizePortrait(file) {
       const image = new Image();
       image.onerror = () => reject(new Error('Could not open that image.'));
       image.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = PORTRAIT_WIDTH;
-        canvas.height = PORTRAIT_HEIGHT;
-        const context = canvas.getContext('2d');
-        if (!context) {
+        const source = document.createElement('canvas');
+        source.width = PORTRAIT_WIDTH;
+        source.height = PORTRAIT_HEIGHT;
+        const sourceContext = source.getContext('2d');
+        if (!sourceContext) {
           reject(new Error('Could not process that image in this browser.'));
           return;
         }
@@ -37,18 +104,52 @@ function stylizePortrait(file) {
         const sourceX = (image.width - sourceWidth) / 2;
         const sourceY = Math.max(0, Math.min(image.height - sourceHeight, (image.height - sourceHeight) * 0.18));
 
-        context.filter = 'grayscale(100%) contrast(114%) brightness(103%)';
-        context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
-        context.filter = 'none';
-        const vignette = context.createRadialGradient(
-          PORTRAIT_WIDTH / 2, PORTRAIT_HEIGHT / 2, PORTRAIT_HEIGHT * 0.35,
-          PORTRAIT_WIDTH / 2, PORTRAIT_HEIGHT / 2, PORTRAIT_HEIGHT * 0.8,
-        );
-        vignette.addColorStop(0, 'rgba(0,0,0,0)');
-        vignette.addColorStop(1, 'rgba(0,0,0,.35)');
-        context.fillStyle = vignette;
-        context.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
-        resolve(canvas.toDataURL('image/jpeg', 0.86));
+        sourceContext.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+        segmentPortrait(source).then(({ segmentationMask }) => {
+          const subject = document.createElement('canvas');
+          subject.width = PORTRAIT_WIDTH;
+          subject.height = PORTRAIT_HEIGHT;
+          const subjectContext = subject.getContext('2d');
+          const canvas = document.createElement('canvas');
+          canvas.width = PORTRAIT_WIDTH;
+          canvas.height = PORTRAIT_HEIGHT;
+          const context = canvas.getContext('2d');
+          if (!subjectContext || !context) {
+            reject(new Error('Could not compose the processed portrait in this browser.'));
+            return;
+          }
+
+          subjectContext.filter = 'grayscale(100%) contrast(114%) brightness(103%)';
+          subjectContext.drawImage(source, 0, 0);
+          subjectContext.globalCompositeOperation = 'destination-in';
+          subjectContext.filter = 'blur(1px)';
+          subjectContext.drawImage(segmentationMask, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+          subjectContext.globalCompositeOperation = 'source-over';
+          subjectContext.filter = 'none';
+
+          const background = context.createRadialGradient(
+            PORTRAIT_WIDTH * 0.56, PORTRAIT_HEIGHT * 0.38, PORTRAIT_HEIGHT * 0.08,
+            PORTRAIT_WIDTH * 0.52, PORTRAIT_HEIGHT * 0.46, PORTRAIT_HEIGHT * 0.78,
+          );
+          background.addColorStop(0, '#777777');
+          background.addColorStop(0.36, '#3c3c3c');
+          background.addColorStop(0.72, '#171717');
+          background.addColorStop(1, '#050505');
+          context.fillStyle = background;
+          context.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+
+          context.strokeStyle = 'rgba(230,230,230,.13)';
+          context.lineWidth = 1;
+          context.beginPath();
+          context.ellipse(PORTRAIT_WIDTH * 0.54, PORTRAIT_HEIGHT * 0.37, PORTRAIT_WIDTH * 0.38, PORTRAIT_HEIGHT * 0.27, -0.12, 0, Math.PI * 2);
+          context.stroke();
+          context.beginPath();
+          context.ellipse(PORTRAIT_WIDTH * 0.54, PORTRAIT_HEIGHT * 0.37, PORTRAIT_WIDTH * 0.32, PORTRAIT_HEIGHT * 0.22, -0.12, 0, Math.PI * 2);
+          context.stroke();
+
+          context.drawImage(subject, 0, 0);
+          resolve(canvas.toDataURL('image/jpeg', 0.86));
+        }).catch(reject);
       };
       image.src = reader.result;
     };
@@ -114,7 +215,7 @@ function PhotoField({ value, onChange }) {
           </button>
         )}
         <p className="admin-photo-note">
-          Cropped to portrait and converted to black and white to match Aditya’s photo.
+          Background removed and replaced with a matching monochrome backdrop. The AI model downloads on first use.
         </p>
         {error && <small className="admin-photo-err" role="alert">{error}</small>}
       </div>
