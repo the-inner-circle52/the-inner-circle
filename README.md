@@ -30,9 +30,33 @@ npm run preview
 Vercel deployments include a rewrite to `index.html` so direct visits to
 client-side routes such as `/AshtheBuilder` load the React app.
 
+## Shared admin content
+
+Admin edits are stored in Supabase so they appear to every visitor, rather than
+only in the browser that made the edit.
+
+1. In the Supabase SQL Editor, run [`supabase/schema.sql`](./supabase/schema.sql).
+2. In the Vercel project settings, add these environment variables for the
+   production deployment:
+   - `SUPABASE_URL` — the project URL from Supabase project settings.
+   - `SUPABASE_SERVICE_ROLE_KEY` — the server-side `service_role` key, not the
+     publishable/anon key.
+   - `ADMIN_PASSWORD` — choose a new access key for `/AshtheBuilder`.
+3. Redeploy the Vercel project so the API receives the new environment values.
+
+Keep the Supabase service role key private: add it only as a Vercel environment
+variable, never as a `VITE_` variable or in client-side code. The database table
+has row-level security enabled and is accessed through the Vercel API. The
+admin page also offers an explicit option to publish edits previously saved in
+that browser; this replaces the current shared content.
+
 ## Project structure
 
 ```
+api/
+  content.js               – Vercel API for shared website content
+supabase/
+  schema.sql               – shared content table and row-level security
 src/
   App.jsx                 – composes the whole page
   ModalContext.jsx         – shared info-modal state (React context)
@@ -48,4 +72,3 @@ src/
 public/
   assets/                  – logo + founder portrait (only two raster images left)
 ```
-

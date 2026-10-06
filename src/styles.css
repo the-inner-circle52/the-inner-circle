@@ -444,6 +444,7 @@ body.hero-in .hero-bottom{opacity:1;transform:none;transition-delay:.96s}
 .admin-gate-card button{width:100%;padding:13px;background:#151311;color:#f4f1ea;border:0;font:400 11px var(--mono);letter-spacing:.15em;cursor:pointer;transition:background .25s}
 .admin-gate-card button:hover{background:#332f27}
 .admin-gate-error{display:block;margin-top:10px;color:#a33;font:400 11px var(--mono)}
+.admin-save-error{color:#a33;font:400 12px 'Inter',sans-serif;line-height:1.6;background:#f8eaea;padding:10px 12px}
 
 .admin-shell{display:flex;min-height:100vh;font-family:'Inter',sans-serif;background:#f6f4ee}
 .admin-side{width:230px;flex:0 0 230px;background:#151311;color:#cfcabd;display:flex;flex-direction:column;padding:26px 20px;position:sticky;top:0;height:100vh}
