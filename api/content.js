@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 function send(res, status, body) {
   res.status(status).json(body);
 }
@@ -46,6 +48,9 @@ async function reportSupabaseError(response, operation) {
     return 'Supabase rejected the server key. Check SUPABASE_URL and set SUPABASE_SERVICE_ROLE_KEY to the project service_role key in Vercel.';
   }
   if (response.status === 404) {
+    if (operation === 'photo upload') {
+      return 'Supabase could not find the member-photos Storage bucket. Run supabase/schema.sql again in the Supabase SQL Editor.';
+    }
     return 'Supabase returned 404. Verify SUPABASE_URL is the exact Project URL from Supabase (https://<project-ref>.supabase.co), and confirm public.site_content exists and is exposed to the Data API. After creating the table, run NOTIFY pgrst, \'reload schema\'; in the Supabase SQL Editor.';
   }
   return `Supabase content ${operation} failed (HTTP ${response.status}). Check the Vercel function logs for details.`;
@@ -91,6 +96,47 @@ export default async function handler(req, res) {
   if (body?.action === 'login') {
     if (body.password !== ADMIN_PASSWORD) return send(res, 401, { error: 'Incorrect access key.' });
     return send(res, 200, { ok: true });
+  }
+
+  if (body?.action === 'upload-photo') {
+    if (body.password !== ADMIN_PASSWORD) return send(res, 401, { error: 'Admin session is invalid. Log in again.' });
+    const match = typeof body.image === 'string'
+      ? body.image.match(/^data:image\/jpeg;base64,([A-Za-z0-9+/]+={0,2})$/)
+      : null;
+    if (!match) return send(res, 400, { error: 'The processed photo must be a JPEG image.' });
+
+    const imageBytes = Buffer.from(match[1], 'base64');
+    if (imageBytes.length > 2 * 1024 * 1024) {
+      return send(res, 413, { error: 'The processed photo is too large. Choose a smaller image.' });
+    }
+
+    const config = databaseConfig();
+    if (!config) return send(res, 503, { error: 'Shared photo storage is not configured.' });
+    const objectPath = `${randomUUID()}.jpg`;
+    try {
+      const response = await fetch(
+        `${config.url}/storage/v1/object/member-photos/${objectPath}`,
+        {
+          method: 'POST',
+          headers: {
+            ...supabaseHeaders(config.key),
+            'Content-Type': 'image/jpeg',
+            'x-upsert': 'false',
+          },
+          body: imageBytes,
+        },
+      );
+      if (!response.ok) {
+        const error = await reportSupabaseError(response, 'photo upload');
+        return send(res, 502, { error });
+      }
+      return send(res, 200, {
+        url: `${config.url}/storage/v1/object/public/member-photos/${objectPath}`,
+      });
+    } catch (error) {
+      console.error('Supabase photo upload failed.', error);
+      return send(res, 502, { error: 'Could not connect to shared photo storage.' });
+    }
   }
 
   if (body?.action !== 'save') return send(res, 400, { error: 'Unknown content action.' });

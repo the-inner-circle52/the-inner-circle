@@ -1,14 +1,120 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useContentList, useContentSync, useResetList } from '../ContentContext.jsx';
 
 const SESSION_KEY = 'circle-admin-password';
+const PORTRAIT_WIDTH = 640;
+const PORTRAIT_HEIGHT = 800;
+
+function stylizePortrait(file) {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('Choose an image file.'));
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      reject(new Error('Choose an image smaller than 10 MB.'));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Could not read that image.'));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error('Could not open that image.'));
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = PORTRAIT_WIDTH;
+        canvas.height = PORTRAIT_HEIGHT;
+        const context = canvas.getContext('2d');
+        if (!context) {
+          reject(new Error('Could not process that image in this browser.'));
+          return;
+        }
+
+        const scale = Math.max(PORTRAIT_WIDTH / image.width, PORTRAIT_HEIGHT / image.height);
+        const sourceWidth = PORTRAIT_WIDTH / scale;
+        const sourceHeight = PORTRAIT_HEIGHT / scale;
+        const sourceX = (image.width - sourceWidth) / 2;
+        const sourceY = Math.max(0, Math.min(image.height - sourceHeight, (image.height - sourceHeight) * 0.18));
+
+        context.filter = 'grayscale(100%) contrast(114%) brightness(103%)';
+        context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+        context.filter = 'none';
+        const vignette = context.createRadialGradient(
+          PORTRAIT_WIDTH / 2, PORTRAIT_HEIGHT / 2, PORTRAIT_HEIGHT * 0.35,
+          PORTRAIT_WIDTH / 2, PORTRAIT_HEIGHT / 2, PORTRAIT_HEIGHT * 0.8,
+        );
+        vignette.addColorStop(0, 'rgba(0,0,0,0)');
+        vignette.addColorStop(1, 'rgba(0,0,0,.35)');
+        context.fillStyle = vignette;
+        context.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+        resolve(canvas.toDataURL('image/jpeg', 0.86));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadMemberPhoto(file) {
+  const image = await stylizePortrait(file);
+  const password = sessionStorage.getItem(SESSION_KEY);
+  const response = await fetch('/api/content', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'upload-photo', password, image }),
+  });
+  const result = await response.json();
+  if (!response.ok) throw new Error(result.error || 'Could not upload the photo.');
+  return result.url;
+}
+
+function PhotoField({ value, onChange }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const inputRef = useRef(null);
+
+  const handleFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setBusy(true);
+    setError('');
+    try {
+      const url = await uploadMemberPhoto(file);
+      onChange(url);
+    } catch (uploadError) {
+      setError(uploadError.message || 'Could not process that photo.');
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+
+  return (
+    <div className="admin-photo-field">
+      <div className="admin-photo-preview">
+        {value ? <img src={value} alt="Member portrait preview" /> : <span>No photo yet</span>}
+      </div>
+      <div className="admin-photo-controls">
+        <label className={`admin-upload-btn${busy ? ' busy' : ''}`}>
+          {busy ? 'UPLOADING…' : 'UPLOAD PHOTO'}
+          <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} disabled={busy} hidden />
+        </label>
+        <p className="admin-photo-note">
+          Cropped to portrait and converted to black and white to match Aditya’s photo.
+        </p>
+        {error && <small className="admin-photo-err" role="alert">{error}</small>}
+      </div>
+    </div>
+  );
+}
 
 const FIELD_SETS = {
   members: [
     { key: 'role', label: 'Role', type: 'text' },
     { key: 'name', label: 'Name', type: 'text' },
     { key: 'initials', label: 'Initials', type: 'text' },
-    { key: 'photo', label: 'Photo path', type: 'text' },
+    { key: 'photo', label: 'Photo', type: 'photo' },
     { key: 'focus', label: 'Focus', type: 'text' },
     { key: 'bio', label: 'Bio', type: 'textarea' },
   ],
@@ -181,7 +287,12 @@ function EditableTable({ kind }) {
                   {fields.map((f) => (
                     <label key={f.key}>
                       <span>{f.label}</span>
-                      {f.type === 'textarea' ? (
+                      {f.key === 'photo' ? (
+                        <PhotoField
+                          value={editDraft[f.key]}
+                          onChange={(url) => setEditDraft({ ...editDraft, [f.key]: url })}
+                        />
+                      ) : f.type === 'textarea' ? (
                         <textarea
                           value={editDraft[f.key] || ''}
                           onChange={(e) => setEditDraft({ ...editDraft, [f.key]: e.target.value })}
@@ -207,8 +318,15 @@ function EditableTable({ kind }) {
                   <button type="button" disabled={saving || i === items.length - 1} onClick={() => moveItem(i, 1)} aria-label="Move down">↓</button>
                 </div>
                 <div className="admin-row-summary">
-                  <b>{it[fields[1]?.key] || it[fields[0]?.key]}</b>
-                  <small>{it[fields[0]?.key]}</small>
+                  {kind === 'members' && (
+                    it.photo
+                      ? <img className="admin-row-thumb" src={it.photo} alt="" />
+                      : <span className="admin-row-thumb admin-row-thumb-empty">{it.initials || '—'}</span>
+                  )}
+                  <span>
+                    <b>{it[fields[1]?.key] || it[fields[0]?.key]}</b>
+                    <small>{it[fields[0]?.key]}</small>
+                  </span>
                 </div>
                 <div className="admin-row-actions">
                   <button type="button" onClick={() => startEdit(i)} disabled={saving}>EDIT</button>
@@ -224,9 +342,11 @@ function EditableTable({ kind }) {
         <h3>Add new</h3>
         <div className="admin-row-fields">
           {fields.map((f) => (
-            <label key={f.key}>
+            <label key={f.key} className={f.key === 'photo' ? 'admin-field-wide' : ''}>
               <span>{f.label}</span>
-              {f.type === 'textarea' ? (
+              {f.key === 'photo' ? (
+                <PhotoField value={draft[f.key]} onChange={(url) => setDraft({ ...draft, [f.key]: url })} />
+              ) : f.type === 'textarea' ? (
                 <textarea value={draft[f.key]} onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })} />
               ) : (
                 <input value={draft[f.key]} onChange={(e) => setDraft({ ...draft, [f.key]: e.target.value })} />

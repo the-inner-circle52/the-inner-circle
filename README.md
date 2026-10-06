@@ -36,11 +36,14 @@ Admin edits are stored in Supabase so they appear to every visitor, rather than
 only in the browser that made the edit.
 
 1. In the Supabase SQL Editor, run [`supabase/schema.sql`](./supabase/schema.sql).
+   It creates the public `member-photos` Storage bucket used for uploaded
+   member portraits.
 2. In the Vercel project settings, add these environment variables for the
    production deployment:
    - `SUPABASE_URL` — the project URL from Supabase project settings.
    - `SUPABASE_SERVICE_ROLE_KEY` — the server-side `service_role` JWT or
      `sb_secret_...` key, not the publishable/anon key.
+   - `ADMIN_PASSWORD` — the password used to log in to `/AshtheBuilder`.
 3. Redeploy the Vercel project so the API receives the new environment values.
 
 Keep the Supabase service role key private: add it only as a Vercel environment
@@ -55,7 +58,7 @@ that browser; this replaces the current shared content.
 api/
   content.js               – Vercel API for shared website content
 supabase/
-  schema.sql               – shared content table and row-level security
+  schema.sql               – shared content table and member photo storage bucket
 src/
   App.jsx                 – composes the whole page
   ModalContext.jsx         – shared info-modal state (React context)
