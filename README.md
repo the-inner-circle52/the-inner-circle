@@ -39,8 +39,8 @@ only in the browser that made the edit.
 2. In the Vercel project settings, add these environment variables for the
    production deployment:
    - `SUPABASE_URL` — the project URL from Supabase project settings.
-   - `SUPABASE_SERVICE_ROLE_KEY` — the server-side `service_role` key, not the
-     publishable/anon key.
+   - `SUPABASE_SERVICE_ROLE_KEY` — the server-side `service_role` JWT or
+     `sb_secret_...` key, not the publishable/anon key.
    - `ADMIN_PASSWORD` — choose a new access key for `/AshtheBuilder`.
 3. Redeploy the Vercel project so the API receives the new environment values.
 
