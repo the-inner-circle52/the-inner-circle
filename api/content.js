@@ -45,6 +45,9 @@ async function reportSupabaseError(response, operation) {
   if (response.status === 401 || response.status === 403) {
     return 'Supabase rejected the server key. Check SUPABASE_URL and set SUPABASE_SERVICE_ROLE_KEY to the project service_role key in Vercel.';
   }
+  if (response.status === 404) {
+    return 'Supabase returned 404. Verify SUPABASE_URL is the exact Project URL from Supabase (https://<project-ref>.supabase.co), and confirm public.site_content exists and is exposed to the Data API. After creating the table, run NOTIFY pgrst, \'reload schema\'; in the Supabase SQL Editor.';
+  }
   return `Supabase content ${operation} failed (HTTP ${response.status}). Check the Vercel function logs for details.`;
 }
 
