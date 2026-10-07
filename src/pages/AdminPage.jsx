@@ -10,6 +10,7 @@ let segmentationLibraryPromise;
 let segmentationInstancePromise;
 let segmentationQueue = Promise.resolve();
 let pendingSegmentation;
+let founderBackdropPromise;
 
 function loadSegmentationLibrary() {
   if (window.SelfieSegmentation) return Promise.resolve(window.SelfieSegmentation);
@@ -72,6 +73,119 @@ function segmentPortrait(sourceCanvas) {
   return result;
 }
 
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Could not load the founder portrait background.'));
+    image.src = src;
+  });
+}
+
+function drawPortraitCrop(context, image) {
+  const scale = Math.max(PORTRAIT_WIDTH / image.width, PORTRAIT_HEIGHT / image.height);
+  const sourceWidth = PORTRAIT_WIDTH / scale;
+  const sourceHeight = PORTRAIT_HEIGHT / scale;
+  const sourceX = (image.width - sourceWidth) / 2;
+  const sourceY = Math.max(0, Math.min(image.height - sourceHeight, (image.height - sourceHeight) * 0.18));
+  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+}
+
+function drawBackdropFill(context) {
+  const wall = context.createLinearGradient(0, 0, PORTRAIT_WIDTH, 0);
+  wall.addColorStop(0, '#d6d4cf');
+  wall.addColorStop(0.27, '#efede8');
+  wall.addColorStop(0.42, '#63625f');
+  wall.addColorStop(0.56, '#cbc9c4');
+  wall.addColorStop(0.76, '#85837f');
+  wall.addColorStop(1, '#242424');
+  context.fillStyle = wall;
+  context.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+
+  const light = context.createRadialGradient(440, 220, 8, 440, 220, 230);
+  light.addColorStop(0, 'rgba(255,255,255,.9)');
+  light.addColorStop(0.16, 'rgba(255,255,255,.42)');
+  light.addColorStop(1, 'rgba(255,255,255,0)');
+  context.fillStyle = light;
+  context.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+
+  context.save();
+  context.translate(135, 245);
+  context.rotate(-0.15);
+  context.lineWidth = 22;
+  context.strokeStyle = '#292929';
+  context.beginPath();
+  context.ellipse(0, 0, 285, 235, 0, -Math.PI * 0.92, Math.PI * 0.69);
+  context.stroke();
+  context.lineWidth = 12;
+  context.strokeStyle = '#c4c2bd';
+  context.beginPath();
+  context.ellipse(0, 0, 265, 216, 0, -Math.PI * 0.91, Math.PI * 0.68);
+  context.stroke();
+  context.lineWidth = 5;
+  context.strokeStyle = 'rgba(28,28,28,.8)';
+  context.beginPath();
+  context.ellipse(0, 0, 232, 188, 0, -Math.PI * 0.87, Math.PI * 0.62);
+  context.stroke();
+  context.restore();
+
+  const concrete = context.createLinearGradient(265, 0, 385, 0);
+  concrete.addColorStop(0, 'rgba(28,28,28,.12)');
+  concrete.addColorStop(0.48, 'rgba(20,20,20,.58)');
+  concrete.addColorStop(1, 'rgba(245,245,245,.2)');
+  context.fillStyle = concrete;
+  context.fillRect(265, 0, 120, PORTRAIT_HEIGHT);
+
+  const shade = context.createLinearGradient(0, 0, 0, PORTRAIT_HEIGHT);
+  shade.addColorStop(0, 'rgba(0,0,0,.05)');
+  shade.addColorStop(0.72, 'rgba(0,0,0,0)');
+  shade.addColorStop(1, 'rgba(0,0,0,.48)');
+  context.fillStyle = shade;
+  context.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+}
+
+function getFounderBackdrop() {
+  if (!founderBackdropPromise) {
+    founderBackdropPromise = (async () => {
+      const image = await loadImage('/assets/aditya-portrait-clean.jpg');
+      const source = document.createElement('canvas');
+      source.width = PORTRAIT_WIDTH;
+      source.height = PORTRAIT_HEIGHT;
+      const sourceContext = source.getContext('2d');
+      if (!sourceContext) throw new Error('Could not prepare the founder portrait background.');
+      drawPortraitCrop(sourceContext, image);
+
+      const { segmentationMask } = await segmentPortrait(source);
+      const cutout = document.createElement('canvas');
+      cutout.width = PORTRAIT_WIDTH;
+      cutout.height = PORTRAIT_HEIGHT;
+      const cutoutContext = cutout.getContext('2d');
+      if (!cutoutContext) throw new Error('Could not prepare the founder portrait background.');
+      cutoutContext.drawImage(source, 0, 0);
+      cutoutContext.globalCompositeOperation = 'destination-out';
+      cutoutContext.filter = 'blur(1.2px)';
+      cutoutContext.drawImage(segmentationMask, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
+      cutoutContext.globalCompositeOperation = 'source-over';
+      cutoutContext.filter = 'none';
+
+      const backdrop = document.createElement('canvas');
+      backdrop.width = PORTRAIT_WIDTH;
+      backdrop.height = PORTRAIT_HEIGHT;
+      const backdropContext = backdrop.getContext('2d');
+      if (!backdropContext) throw new Error('Could not prepare the founder portrait background.');
+      drawBackdropFill(backdropContext);
+      backdropContext.filter = 'grayscale(100%) contrast(1.08)';
+      backdropContext.drawImage(cutout, 0, 0);
+      backdropContext.filter = 'none';
+      return backdrop;
+    })().catch((error) => {
+      founderBackdropPromise = null;
+      throw error;
+    });
+  }
+  return founderBackdropPromise;
+}
+
 function stylizePortrait(file) {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('image/')) {
@@ -98,14 +212,8 @@ function stylizePortrait(file) {
           return;
         }
 
-        const scale = Math.max(PORTRAIT_WIDTH / image.width, PORTRAIT_HEIGHT / image.height);
-        const sourceWidth = PORTRAIT_WIDTH / scale;
-        const sourceHeight = PORTRAIT_HEIGHT / scale;
-        const sourceX = (image.width - sourceWidth) / 2;
-        const sourceY = Math.max(0, Math.min(image.height - sourceHeight, (image.height - sourceHeight) * 0.18));
-
-        sourceContext.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
-        segmentPortrait(source).then(({ segmentationMask }) => {
+        drawPortraitCrop(sourceContext, image);
+        Promise.all([segmentPortrait(source), getFounderBackdrop()]).then(([{ segmentationMask }, backdrop]) => {
           const subject = document.createElement('canvas');
           subject.width = PORTRAIT_WIDTH;
           subject.height = PORTRAIT_HEIGHT;
@@ -127,26 +235,7 @@ function stylizePortrait(file) {
           subjectContext.globalCompositeOperation = 'source-over';
           subjectContext.filter = 'none';
 
-          const background = context.createRadialGradient(
-            PORTRAIT_WIDTH * 0.56, PORTRAIT_HEIGHT * 0.38, PORTRAIT_HEIGHT * 0.08,
-            PORTRAIT_WIDTH * 0.52, PORTRAIT_HEIGHT * 0.46, PORTRAIT_HEIGHT * 0.78,
-          );
-          background.addColorStop(0, '#777777');
-          background.addColorStop(0.36, '#3c3c3c');
-          background.addColorStop(0.72, '#171717');
-          background.addColorStop(1, '#050505');
-          context.fillStyle = background;
-          context.fillRect(0, 0, PORTRAIT_WIDTH, PORTRAIT_HEIGHT);
-
-          context.strokeStyle = 'rgba(230,230,230,.13)';
-          context.lineWidth = 1;
-          context.beginPath();
-          context.ellipse(PORTRAIT_WIDTH * 0.54, PORTRAIT_HEIGHT * 0.37, PORTRAIT_WIDTH * 0.38, PORTRAIT_HEIGHT * 0.27, -0.12, 0, Math.PI * 2);
-          context.stroke();
-          context.beginPath();
-          context.ellipse(PORTRAIT_WIDTH * 0.54, PORTRAIT_HEIGHT * 0.37, PORTRAIT_WIDTH * 0.32, PORTRAIT_HEIGHT * 0.22, -0.12, 0, Math.PI * 2);
-          context.stroke();
-
+          context.drawImage(backdrop, 0, 0);
           context.drawImage(subject, 0, 0);
           resolve(canvas.toDataURL('image/jpeg', 0.86));
         }).catch(reject);
@@ -215,7 +304,8 @@ function PhotoField({ value, onChange }) {
           </button>
         )}
         <p className="admin-photo-note">
-          Background removed and replaced with a matching monochrome backdrop. The AI model downloads on first use.
+          Background removed and replaced with the grayscale architectural backdrop from Aditya’s portrait.
+          The AI model downloads on first use.
         </p>
         {error && <small className="admin-photo-err" role="alert">{error}</small>}
       </div>
