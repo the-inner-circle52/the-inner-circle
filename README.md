@@ -38,9 +38,10 @@ only in the browser that made the edit.
 1. In the Supabase SQL Editor, run [`supabase/schema.sql`](./supabase/schema.sql).
    It creates the public `member-photos` Storage bucket used for uploaded
    member portraits. Uploaded portraits are segmented in the browser using
-   MediaPipe, then composited over the grayscale architectural background
-   extracted from the site's founder portrait. Model assets download from
-   jsDelivr on first use.
+   MediaPipe, then composited over the grayscale architectural/logo background
+   in `public/assets/member-portrait-background.jpg`. The background is
+   right-aligned in the portrait crop so its logo sits behind the subject's
+   face. Model assets download from jsDelivr on first use.
 2. In the Vercel project settings, add these environment variables for the
    production deployment:
    - `SUPABASE_URL` — the project URL from Supabase project settings.
